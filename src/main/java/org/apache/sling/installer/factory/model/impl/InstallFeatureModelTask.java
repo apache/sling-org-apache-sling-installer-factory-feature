@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import org.apache.sling.feature.Artifact;
 import org.apache.sling.feature.ArtifactId;
@@ -182,10 +184,10 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
 
                 final String configPid = REGION_FACTORY_PID.concat(feature.getId().toMvnName().replace('-', '_'));
                 final Dictionary<String, Object> props = new Hashtable<>();
-                props.put(PROP_idbsnver, LauncherProperties.getBundleIDtoBSNandVersionMap(feature, this.installContext.artifactManager));
-                props.put(PROP_bundleFeatures, LauncherProperties.getBundleIDtoFeaturesMap(feature));
-                props.put(PROP_featureRegions, LauncherProperties.getFeatureIDtoRegionsMap(regions));
-                props.put(PROP_regionPackage, LauncherProperties.getRegionNametoPackagesMap(regions));
+                props.put(PROP_idbsnver, convert(LauncherProperties.getBundleIDtoBSNandVersionMap(feature, this.installContext.artifactManager)));
+                props.put(PROP_bundleFeatures, convert(LauncherProperties.getBundleIDtoFeaturesMap(feature)));
+                props.put(PROP_featureRegions, convert(LauncherProperties.getFeatureIDtoRegionsMap(regions)));
+                props.put(PROP_regionPackage, convert(LauncherProperties.getRegionNametoPackagesMap(regions)));
 
                 result.add(new InstallableResource("/".concat(configPid).concat(".config"), null,
                         props, null, InstallableResource.TYPE_CONFIG, null));
@@ -211,6 +213,15 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         }
 
         return result;
+    }
+
+    private String[] convert(final Properties props) {
+        final List<String> result = new ArrayList<>();
+
+        for(final Map.Entry<Object, Object> entry : props.entrySet()) {
+            result.add(entry.getKey().toString().concat("=").concat(entry.getValue().toString()));
+        }
+        return result.toArray(new String[result.size()]);
     }
 
     private boolean addArtifact(final Artifact artifact,
