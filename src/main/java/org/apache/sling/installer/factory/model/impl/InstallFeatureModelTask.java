@@ -52,6 +52,7 @@ import org.apache.sling.installer.api.tasks.ResourceState;
 import org.apache.sling.installer.api.tasks.TaskResource;
 import org.apache.sling.installer.api.tasks.TaskResourceGroup;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 
 /**
  * This task installs a feature model resources.
@@ -144,6 +145,7 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
             final String configPid = REPOINIT_FACTORY_PID.concat(feature.getId().toMvnName().replace('-', '_'));
             final Dictionary<String, Object> props = new Hashtable<>();
             props.put("scripts", repoInit.getText());
+            props.put(Constants.SERVICE_RANKING, 200);
 
             result.add(new InstallableResource("/".concat(configPid).concat(".config"), null,
                     props, null, InstallableResource.TYPE_CONFIG, null));
