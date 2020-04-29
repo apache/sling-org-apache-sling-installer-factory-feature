@@ -80,13 +80,13 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
             final String featureJson = (String) resource.getAttribute(FeatureModelInstallerPlugin.ATTR_MODEL);
             if (featureJson == null) {
                 ctx.log("Unable to install feature model resource {} : no model found", resource);
-                this.getResourceGroup().setFinishState(ResourceState.IGNORED);
+                this.getResourceGroup().setFinishState(ResourceState.IGNORED, null, "No model found");
             } else {
                 boolean success = false;
                 final List<InstallableResource> result = this.transform(featureJson, resource);
                 if (result == null) {
                     ctx.log("Unable to install feature model resource {} : unable to create resources", resource);
-                    this.getResourceGroup().setFinishState(ResourceState.IGNORED);
+                    this.getResourceGroup().setFinishState(ResourceState.IGNORED, null, "Unable to create resources");
                 } else {
                     if (!result.isEmpty()) {
                         final OsgiInstaller installer = this.getService(OsgiInstaller.class);
@@ -97,7 +97,7 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
                         } else {
                             ctx.log("Unable to install feature model resource {} : unable to get OSGi installer",
                                     resource);
-                            this.getResourceGroup().setFinishState(ResourceState.IGNORED);
+                            this.getResourceGroup().setFinishState(ResourceState.IGNORED, null,  "Unable to get OSGi installer");
                             return;
                         }
                     }

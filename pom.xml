@@ -47,7 +47,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <excludePackageNames>
-                        org.apache.sling.installer.factory.model.impl
+                        org.apache.sling.installer.factory.feature.model.impl
                     </excludePackageNames>
                 </configuration>
             </plugin>
