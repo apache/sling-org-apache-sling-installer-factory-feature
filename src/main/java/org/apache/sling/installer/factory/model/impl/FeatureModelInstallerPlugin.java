@@ -108,10 +108,10 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
         this.storageDirectory = this.bundleContext.getDataFile("repository");
         final ArtifactManagerConfig amCfg = new ArtifactManagerConfig();
         amCfg.setUseMvn(config.useMvn());
-        final List<String> repos = new ArrayList<>(Arrays.asList(amCfg.getRepositoryUrls()));
         if (this.storageDirectory != null) {
-            repos.add(this.storageDirectory.toURI().toURL().toExternalForm());
+            amCfg.setCacheDirectory(storageDirectory);
         }
+        final List<String> repos = new ArrayList<>(Arrays.asList(amCfg.getRepositoryUrls()));
         if (config.repositories() != null && config.repositories().length > 0) {
             for (final String r : config.repositories()) {
                 if (!r.trim().isEmpty()) {
