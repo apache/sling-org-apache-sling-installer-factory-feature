@@ -117,7 +117,7 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
     }
 
     private File getArtifactFile(final File baseDir, final ArtifactId id) {
-        return new File(baseDir, id.toMvnId().replace('/', File.separatorChar));
+        return new File(baseDir, id.toMvnPath().replace('/', File.separatorChar));
     }
 
     private List<InstallableResource> transform(final String featureJson,
