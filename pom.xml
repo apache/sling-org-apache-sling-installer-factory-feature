@@ -27,7 +27,7 @@
     </parent>
 
     <artifactId>org.apache.sling.installer.factory.feature</artifactId>
-    <version>0.3.1-SNAPSHOT</version>
+    <version>0.4.0</version>
 
     <name>Apache Sling Installer Feature Model Support</name>
     <description> 
@@ -38,7 +38,7 @@
         <connection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-installer-factory-feature.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-installer-factory-feature.git</developerConnection>
         <url>https://gitbox.apache.org/repos/asf?p=sling-org-apache-sling-installer-factory-feature.git</url>
-      <tag>HEAD</tag>
+      <tag>org.apache.sling.installer.factory.feature-0.4.0</tag>
   </scm>
 
     <build>
