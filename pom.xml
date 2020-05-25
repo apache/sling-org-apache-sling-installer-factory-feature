@@ -27,7 +27,7 @@
     </parent>
 
     <artifactId>org.apache.sling.installer.factory.feature</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1-SNAPSHOT</version>
 
     <name>Apache Sling Installer Feature Model Support</name>
     <description> 
