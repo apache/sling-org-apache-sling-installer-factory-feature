@@ -183,6 +183,8 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
                     feature = FeatureBuilder.assemble(feature, ctx);
                 }
 
+                FeatureBuilder.resolveVariables(feature, null);
+
                 String featureJson = null;
                 try (final StringWriter sw = new StringWriter()) {
                     FeatureJSONWriter.write(sw, feature);
