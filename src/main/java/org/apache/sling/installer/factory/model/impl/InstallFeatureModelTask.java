@@ -206,11 +206,12 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
             }
         }
 
-        // content packages
-        final Extension ext = feature.getExtensions().getByName(Extension.EXTENSION_NAME_CONTENT_PACKAGES);
-        if (ext != null && ext.getType() == ExtensionType.ARTIFACTS) {
-            for (final Artifact artifact : ext.getArtifacts()) {
-                addArtifact(artifact, result);
+        // artifact extensions
+        for(final Extension ext : feature.getExtensions()) {
+            if ( ext.getType() == ExtensionType.ARTIFACTS ) {
+                for (final Artifact artifact : ext.getArtifacts()) {
+                    addArtifact(artifact, result);
+                }
             }
         }
 
