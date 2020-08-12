@@ -180,6 +180,9 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
                 if (!feature.isAssembled()) {
                     final BuilderContext ctx = new BuilderContext(this.artifactManager.toFeatureProvider());
                     ctx.setArtifactProvider(this.artifactManager);
+
+                    // Set all merge extensions here from the service registry?
+
                     feature = FeatureBuilder.assemble(feature, ctx);
                 }
 
