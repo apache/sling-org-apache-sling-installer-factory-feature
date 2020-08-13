@@ -18,21 +18,6 @@
  */
 package org.apache.sling.installer.factory.model.impl;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
 import org.apache.sling.feature.Feature;
 import org.apache.sling.feature.builder.BuilderContext;
 import org.apache.sling.feature.builder.FeatureBuilder;
@@ -41,6 +26,7 @@ import org.apache.sling.feature.io.artifacts.ArtifactManager;
 import org.apache.sling.feature.io.artifacts.ArtifactManagerConfig;
 import org.apache.sling.feature.io.json.FeatureJSONReader;
 import org.apache.sling.feature.io.json.FeatureJSONWriter;
+import org.apache.sling.feature.spi.context.ExtensionHandler;
 import org.apache.sling.installer.api.InstallableResource;
 import org.apache.sling.installer.api.tasks.InstallTask;
 import org.apache.sling.installer.api.tasks.InstallTaskFactory;
@@ -58,6 +44,21 @@ import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * This task factory processes model resources detected by
@@ -101,6 +102,8 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
     private final List<Pattern> classifierPatterns = new ArrayList<>();
 
     private final File storageDirectory;
+
+    private volatile List<ExtensionHandler> extensionHandlers;
 
     @Activate
     public FeatureModelInstallerPlugin(final BundleContext ctx, final Config config) throws IOException {
@@ -232,7 +235,7 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
         }
         final InstallContext ctx = new InstallContext(this.artifactManager, this.storageDirectory);
         return new InstallFeatureModelTask(group,
-                ctx, this.bundleContext);
+                ctx, this.bundleContext, this.extensionHandlers);
     }
 
     boolean classifierMatches(String classifier) {

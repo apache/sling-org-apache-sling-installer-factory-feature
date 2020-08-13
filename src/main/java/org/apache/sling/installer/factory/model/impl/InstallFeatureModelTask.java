@@ -18,21 +18,6 @@
  */
 package org.apache.sling.installer.factory.model.impl;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.List;
-
 import org.apache.sling.feature.Artifact;
 import org.apache.sling.feature.ArtifactId;
 import org.apache.sling.feature.Configuration;
@@ -52,25 +37,35 @@ import org.apache.sling.installer.api.tasks.ResourceState;
 import org.apache.sling.installer.api.tasks.TaskResource;
 import org.apache.sling.installer.api.tasks.TaskResourceGroup;
 import org.osgi.framework.BundleContext;
-import org.osgi.util.tracker.ServiceTracker;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.List;
 
 /**
  * This task installs a feature model resources.
  */
 public class InstallFeatureModelTask extends AbstractFeatureModelTask {
     private final InstallContext installContext;
-
-
-// It's not a DS component so we can't do @Reference
-//    @Reference
-//    private List<ExtensionHandler> extensionHandlers;
-    final ServiceTracker<ExtensionHandler, ExtensionHandler> extensionHandlerTracker;
+    private final List<ExtensionHandler> extensionHandlers;
 
     public InstallFeatureModelTask(final TaskResourceGroup group,
-            final InstallContext installContext, final BundleContext bundleContext) {
+            final InstallContext installContext, final BundleContext bundleContext,
+            final List<ExtensionHandler> extensionHandlers) {
         super(group, bundleContext);
         this.installContext = installContext;
-        this.extensionHandlerTracker = new ServiceTracker<>(bundleContext, ExtensionHandler.class, null);
+        this.extensionHandlers = extensionHandlers;
     }
 
     @Override
@@ -141,23 +136,22 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
 
         for (Extension ext : feature.getExtensions()) {
             boolean handlerFound = false;
-            for (ExtensionHandler eh : extensionHandlerTracker.getServices(new ExtensionHandler[] {})) {
+            for (ExtensionHandler eh : extensionHandlers) {
                 try {
                     handlerFound |= eh.handle(context, ext, feature);
                 } catch (Exception e) {
                     logger.error("Exception while processing extension {} with handler {}", ext, eh, e);
                 }
-
-                if (!handlerFound) {
-                    if (ExtensionType.ARTIFACTS == ext.getType()) {
-                        // Unhandled ARTIFACTS extensions get stored
-                        for (final Artifact artifact : ext.getArtifacts()) {
-                            addArtifact(artifact, result);
-                        }
-                    } else {
-                        // should this be an error?
-                        logger.warn("No extension handler found for mandartory extension " + ext);
+            }
+            if (!handlerFound) {
+                if (ExtensionType.ARTIFACTS == ext.getType()) {
+                    // Unhandled ARTIFACTS extensions get stored
+                    for (final Artifact artifact : ext.getArtifacts()) {
+                        addArtifact(artifact, result);
                     }
+                } else {
+                    // should this be an error?
+                    logger.warn("No extension handler found for mandartory extension " + ext);
                 }
             }
         }

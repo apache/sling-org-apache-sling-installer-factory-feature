@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.sling.installer.factory.model.impl;
 
 import org.apache.felix.utils.manifest.Clause;
@@ -71,3 +72,4 @@ public class BinaryArtifactExtensionHandler implements ExtensionHandler {
         }
     }
 }
+
