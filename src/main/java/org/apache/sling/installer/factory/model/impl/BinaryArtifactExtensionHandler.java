@@ -22,6 +22,7 @@ package org.apache.sling.installer.factory.model.impl;
 import org.apache.felix.utils.manifest.Clause;
 import org.apache.felix.utils.manifest.Directive;
 import org.apache.felix.utils.manifest.Parser;
+import org.apache.sling.feature.Artifact;
 import org.apache.sling.feature.Extension;
 import org.apache.sling.feature.ExtensionType;
 import org.apache.sling.feature.Feature;
@@ -31,13 +32,16 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 
 @Component
 public class BinaryArtifactExtensionHandler implements ExtensionHandler {
     private static final String BINARY_EXTENSIONS_PROP = "org.apache.sling.feature.binary.extensions";
+    private static final String UNZIP_ARTIFACT_MARKER = "Unzip-Artifact";
 
     private final Map<String, Map<String, String>> binaryExtensions;
 
@@ -65,9 +69,20 @@ public class BinaryArtifactExtensionHandler implements ExtensionHandler {
                 binaryExtensions.get(extension.getName()) == null) {
             return false;
         } else {
-            // Binary extension
-            // TODO unzip
+            Map<String,String> extensionConfig = binaryExtensions.getOrDefault(extension.getName(),
+                    Collections.emptyMap());
 
+            for (Artifact art : extension.getArtifacts()) {
+                URL artifact = context.getArtifactProvider().provide(art.getId());
+
+                Hashtable<String,Object> props = new Hashtable<>();
+                props.put(UNZIP_ARTIFACT_MARKER, Boolean.TRUE);
+                // the props.computeIfAbsent() ensures that entries aren't put in map if they have no value
+                props.computeIfAbsent("dir", v -> extensionConfig.get("dir"));
+                props.computeIfAbsent("overwrite", v -> extensionConfig.get("overwrite"));
+
+                context.addInstallableArtifact(art.getId(), artifact, props);
+            }
             return true;
         }
     }

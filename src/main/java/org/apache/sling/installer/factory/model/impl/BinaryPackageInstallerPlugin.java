@@ -42,7 +42,10 @@ public class BinaryPackageInstallerPlugin implements InstallTaskFactory, Resourc
 
     @Override
     public TransformationResult[] transform(RegisteredResource resource) {
-        // TODO Auto-generated method stub
+
+        if (Boolean.TRUE.equals(resource.getDictionary().get("Unzip-Artifact"))) {
+            return new TransformationResult[] {};
+        }
         return null;
     }
 

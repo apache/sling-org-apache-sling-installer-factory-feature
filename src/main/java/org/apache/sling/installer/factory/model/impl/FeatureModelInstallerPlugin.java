@@ -39,6 +39,7 @@ import org.apache.sling.installer.api.tasks.TransformationResult;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -103,6 +104,7 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
 
     private final File storageDirectory;
 
+    @Reference
     private volatile List<ExtensionHandler> extensionHandlers;
 
     @Activate

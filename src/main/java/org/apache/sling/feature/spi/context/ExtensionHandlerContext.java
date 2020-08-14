@@ -18,6 +18,7 @@
  */
 package org.apache.sling.feature.spi.context;
 
+import org.apache.sling.feature.ArtifactId;
 import org.apache.sling.feature.builder.ArtifactProvider;
 
 import java.net.URL;
@@ -29,13 +30,15 @@ public interface ExtensionHandlerContext {
      * @param startLevel The start level for the bundle.
      * @param file The file with the bundle.
      */
-    public void addBundle(final Integer startLevel, final URL file);
+    public void addBundle(ArtifactId id, URL file, Integer startLevel);
 
     /**
      * Add an artifact to be installed by the launcher
-     * @param file The file
+     * @param artifactId The ID of the artifact
+     * @param url The url to the Artifact resource
+     * @param props Additional installation metadata
      */
-    public void addInstallableArtifact(final URL file);
+    public void addInstallableArtifact(ArtifactId artifactId, final URL url, final Dictionary<String,Object> props);
 
     /**
      * Add a configuration to be installed by the launcher

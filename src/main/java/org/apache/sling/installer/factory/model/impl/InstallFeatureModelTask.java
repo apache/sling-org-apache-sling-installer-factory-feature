@@ -296,13 +296,19 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         }
 
         @Override
-        public void addBundle(Integer startLevel, URL file) {
+        public void addBundle(ArtifactId id, URL file, Integer startLevel) {
             // TODO Auto-generated method stub
         }
 
         @Override
-        public void addInstallableArtifact(URL file) {
-            // TODO Auto-generated method stub
+        public void addInstallableArtifact(ArtifactId id, URL url, Dictionary<String,Object> props) {
+            try {
+                InputStream is = url.openStream();
+                results.add(new InstallableResource("/".concat(id.toMvnName()), is, props, null /* TODO digest? */,
+                        InstallableResource.TYPE_FILE, null));
+            } catch (IOException e) {
+                logger.warn("Unable to read artifact " + id + " from url " + url, e);
+            }
         }
 
         @Override
