@@ -51,15 +51,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class InstallFeatureModelTaskTest {
-    private static String FEATURE_JSON_1 = "{" + "  \"id\":\"com.adobe.someproj:feature:7.0.126\"," +
-    // " \"bundles\": [" +
-    // "
-    // \"com.adobe.osgi.wrapper:com.adobe.osgi.wrapper.javassist:3.15.0-GA-wrapper.1\""
-    // +
-    // " ]," +
-            "  \"system-fonts:ARTIFACTS|true\": [" + "    \"com.adobe.aemfd.core:adobe-aemfd-core-fonts:jar:0.7.1\"" + "  ],"
-            + "  \"blahblahblah:ARTIFACTS|true\": [" + "  ]," + "  \"framework-properties\": {" + "    \"foo\": \"bar\"" + "  }"
-            + "}";
+    private static String FEATURE_JSON_1 = "{" +
+            "  \"id\":\"org.apache.sling.someproj:feature:7.0.126\"," +
+            "  \"system-fonts:ARTIFACTS|true\": [" +
+            "    \"org.apache.sling.feature:my-fonts:jar:0.7.1\"" +
+            "  ]," +
+            "  \"blahblahblah:ARTIFACTS|true\": [" +
+            "  ]," +
+            "  \"framework-properties\": {" +
+            "    \"foo\": \"bar\"" + "  }" +
+            "}";
 
 
     private Path tempDir;
