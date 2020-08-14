@@ -18,7 +18,7 @@
  */
 package org.apache.sling.feature.spi.context;
 
-import org.apache.sling.feature.io.artifacts.ArtifactManager;
+import org.apache.sling.feature.builder.ArtifactProvider;
 
 import java.net.URL;
 import java.util.Dictionary;
@@ -46,8 +46,8 @@ public interface ExtensionHandlerContext {
     public void addConfiguration(final String pid, final String factoryPid, final Dictionary<String, Object> properties);
 
     /**
-     * Obtain the artifact manager.
-     * @return The artifact manager to use.
+     * Obtain the artifact provider.
+     * @return The artifact provider.
      */
-    public ArtifactManager getArtifactManager();
+    public ArtifactProvider getArtifactProvider();
 }

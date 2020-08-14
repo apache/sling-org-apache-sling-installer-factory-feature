@@ -24,9 +24,9 @@ import org.apache.sling.feature.Configuration;
 import org.apache.sling.feature.Extension;
 import org.apache.sling.feature.ExtensionType;
 import org.apache.sling.feature.Feature;
+import org.apache.sling.feature.builder.ArtifactProvider;
 import org.apache.sling.feature.io.archive.ArchiveReader;
 import org.apache.sling.feature.io.artifacts.ArtifactHandler;
-import org.apache.sling.feature.io.artifacts.ArtifactManager;
 import org.apache.sling.feature.io.json.FeatureJSONReader;
 import org.apache.sling.feature.spi.context.ExtensionHandler;
 import org.apache.sling.feature.spi.context.ExtensionHandlerContext;
@@ -318,7 +318,7 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         }
 
         @Override
-        public ArtifactManager getArtifactManager() {
+        public ArtifactProvider getArtifactProvider() {
             return installContext.artifactManager;
         }
     }

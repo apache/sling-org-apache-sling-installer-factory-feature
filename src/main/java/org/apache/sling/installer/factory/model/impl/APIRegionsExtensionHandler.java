@@ -54,7 +54,7 @@ public class APIRegionsExtensionHandler implements ExtensionHandler {
 
         final String configPid = REGION_FACTORY_PID.concat(feature.getId().toMvnName().replace('-', '_'));
         final Dictionary<String, Object> props = new Hashtable<>();
-        props.put(PROP_idbsnver, convert(LauncherProperties.getBundleIDtoBSNandVersionMap(feature, context.getArtifactManager())));
+        props.put(PROP_idbsnver, convert(LauncherProperties.getBundleIDtoBSNandVersionMap(feature, context.getArtifactProvider())));
         props.put(PROP_bundleFeatures, convert(LauncherProperties.getBundleIDtoFeaturesMap(feature)));
         props.put(PROP_featureRegions, convert(LauncherProperties.getFeatureIDtoRegionsMap(regions)));
         props.put(PROP_regionPackage, convert(LauncherProperties.getRegionNametoPackagesMap(regions)));
