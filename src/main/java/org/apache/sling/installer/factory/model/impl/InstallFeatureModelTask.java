@@ -132,6 +132,33 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
                     cfg.getConfigurationProperties(), null, InstallableResource.TYPE_CONFIG, null));
         }
 
+        // extract artifacts
+        if (this.installContext.storageDirectory != null) {
+            final byte[] buffer = new byte[1024*1024*256];
+
+            try ( final InputStream is = rsrc.getInputStream() ) {
+                ArchiveReader.read(is, new ArchiveReader.ArtifactConsumer() {
+
+                    @Override
+                    public void consume(final ArtifactId id, final InputStream is) throws IOException {
+                        final File artifactFile = getArtifactFile(installContext.storageDirectory, id);
+                        if (!artifactFile.exists()) {
+                            artifactFile.getParentFile().mkdirs();
+                            try (final OutputStream os = new FileOutputStream(artifactFile)) {
+                                int l = 0;
+                                while ((l = is.read(buffer)) > 0) {
+                                    os.write(buffer, 0, l);
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch ( final IOException ioe) {
+                logger.warn("Unable to extract artifacts from feature model " + feature.getId().toMvnId(), ioe);
+                return null;
+            }
+        }
+
         ExtensionHandlerContext context = new ContextImpl(result);
 
         for (Extension ext : feature.getExtensions()) {
@@ -169,33 +196,6 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
                     props, null, InstallableResource.TYPE_CONFIG, null));
         }
         */
-
-        // extract artifacts
-        if (this.installContext.storageDirectory != null) {
-            final byte[] buffer = new byte[1024*1024*256];
-
-            try ( final InputStream is = rsrc.getInputStream() ) {
-                ArchiveReader.read(is, new ArchiveReader.ArtifactConsumer() {
-
-                    @Override
-                    public void consume(final ArtifactId id, final InputStream is) throws IOException {
-                        final File artifactFile = getArtifactFile(installContext.storageDirectory, id);
-                        if (!artifactFile.exists()) {
-                            artifactFile.getParentFile().mkdirs();
-                            try (final OutputStream os = new FileOutputStream(artifactFile)) {
-                                int l = 0;
-                                while ((l = is.read(buffer)) > 0) {
-                                    os.write(buffer, 0, l);
-                                }
-                            }
-                        }
-                    }
-                });
-            } catch ( final IOException ioe) {
-                logger.warn("Unable to extract artifacts from feature model " + feature.getId().toMvnId(), ioe);
-                return null;
-            }
-        }
 
         /* done by APIRegionsExtensionHandler
         // api regions
@@ -283,9 +283,39 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         }
         return true;
     }
+
     @Override
     public String getSortKey() {
         return "30-" + getResource().getAttribute(FeatureModelInstallerPlugin.ATTR_ID);
+    }
+
+    private ArtifactProvider getLocalArtifactProvider() {
+        // TODO share with addArtifact()
+        return new ArtifactProvider() {
+            @Override
+            public URL provide(ArtifactId id) {
+                File artifactFile = (installContext.storageDirectory == null ? null
+                        : getArtifactFile(installContext.storageDirectory, id));
+                ArtifactHandler handler;
+                if (artifactFile == null || !artifactFile.exists()) {
+                    try {
+                        handler = installContext.artifactManager.getArtifactHandler(id.toMvnUrl());
+                    } catch (final IOException ignore) {
+                        return null;
+                    }
+                } else {
+                    try {
+                        handler = new ArtifactHandler(artifactFile);
+                    } catch (final MalformedURLException e) {
+                        return null;
+                    }
+                }
+                if (handler == null) {
+                    return null;
+                }
+                return handler.getLocalURL();
+            }
+        };
     }
 
     private class ContextImpl implements ExtensionHandlerContext {
@@ -325,7 +355,7 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
 
         @Override
         public ArtifactProvider getArtifactProvider() {
-            return installContext.artifactManager;
+            return getLocalArtifactProvider();
         }
     }
 }
