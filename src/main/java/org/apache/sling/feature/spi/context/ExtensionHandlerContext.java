@@ -23,10 +23,12 @@ import org.apache.sling.feature.builder.ArtifactProvider;
 
 import java.net.URL;
 import java.util.Dictionary;
+import java.util.Map;
 
 public interface ExtensionHandlerContext {
     /**
      * Add a bundle to be installed by the launcher.
+     * @param id The bundle's artifact ID
      * @param startLevel The start level for the bundle.
      * @param file The file with the bundle.
      */
@@ -34,11 +36,11 @@ public interface ExtensionHandlerContext {
 
     /**
      * Add an artifact to be installed by the launcher
-     * @param artifactId The ID of the artifact
+     * @param id The artifact's ID
      * @param url The url to the Artifact resource
      * @param props Additional installation metadata
      */
-    public void addInstallableArtifact(ArtifactId artifactId, final URL url, final Dictionary<String,Object> props);
+    public void addInstallableArtifact(ArtifactId id, final URL url, final Map<String,Object> props);
 
     /**
      * Add a configuration to be installed by the launcher

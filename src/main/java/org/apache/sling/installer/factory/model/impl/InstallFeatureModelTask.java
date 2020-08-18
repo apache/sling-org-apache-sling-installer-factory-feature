@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This task installs a feature model resources.
@@ -183,60 +184,12 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
             }
         }
 
-        /* done by RepoinitExtensionHandler
-        // repoinit
-        final Extension repoInit = feature.getExtensions().getByName(Extension.EXTENSION_NAME_REPOINIT);
-        if (repoInit != null && repoInit.getType() == ExtensionType.TEXT) {
-            final String configPid = REPOINIT_FACTORY_PID.concat(feature.getId().toMvnName().replace('-', '_'));
-            final Dictionary<String, Object> props = new Hashtable<>();
-            props.put("scripts", repoInit.getText());
-            props.put(Constants.SERVICE_RANKING, 200);
-
-            result.add(new InstallableResource("/".concat(configPid).concat(".config"), null,
-                    props, null, InstallableResource.TYPE_CONFIG, null));
-        }
-        */
-
-        /* done by APIRegionsExtensionHandler
-        // api regions
-        final Extension regionExt = feature.getExtensions().getByName(ApiRegions.EXTENSION_NAME);
-        if ( regionExt != null ) {
-            try {
-                final ApiRegions regions = ApiRegions.parse(regionExt.getJSONStructure().asJsonArray());
-
-                final String configPid = REGION_FACTORY_PID.concat(feature.getId().toMvnName().replace('-', '_'));
-                final Dictionary<String, Object> props = new Hashtable<>();
-                props.put(PROP_idbsnver, convert(LauncherProperties.getBundleIDtoBSNandVersionMap(feature, this.installContext.artifactManager)));
-                props.put(PROP_bundleFeatures, convert(LauncherProperties.getBundleIDtoFeaturesMap(feature)));
-                props.put(PROP_featureRegions, convert(LauncherProperties.getFeatureIDtoRegionsMap(regions)));
-                props.put(PROP_regionPackage, convert(LauncherProperties.getRegionNametoPackagesMap(regions)));
-
-                result.add(new InstallableResource("/".concat(configPid).concat(".config"), null,
-                        props, null, InstallableResource.TYPE_CONFIG, null));
-            } catch (final IOException ioe) {
-                logger.warn("Unable to parse region information " + feature.getId().toMvnId(), ioe);
-                return null;
-            }
-        }
-        */
-
         // bundles
         for (final Artifact bundle : feature.getBundles()) {
             if (!addArtifact(bundle, result)) {
                 return null;
             }
         }
-
-        /*
-        // artifact extensions
-        for(final Extension ext : feature.getExtensions()) {
-            if ( ext.getType() == ExtensionType.ARTIFACTS ) {
-                for (final Artifact artifact : ext.getArtifacts()) {
-                    addArtifact(artifact, result);
-                }
-            }
-        }
-        */
 
         return result;
     }
@@ -331,10 +284,13 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         }
 
         @Override
-        public void addInstallableArtifact(ArtifactId id, URL url, Dictionary<String,Object> props) {
+        public void addInstallableArtifact(ArtifactId id, URL url, Map<String,Object> props) {
             try {
+                Dictionary <String,Object> dict = new Hashtable<>();
+                props.entrySet().stream().forEach(e -> dict.put(e.getKey(), e.getValue()));
+
                 InputStream is = url.openStream();
-                results.add(new InstallableResource("/".concat(id.toMvnName()), is, props, null /* TODO digest? */,
+                results.add(new InstallableResource("/".concat(id.toMvnName()), is, dict, null /* TODO digest? */,
                         InstallableResource.TYPE_FILE, null));
             } catch (IOException e) {
                 logger.warn("Unable to read artifact " + id + " from url " + url, e);
