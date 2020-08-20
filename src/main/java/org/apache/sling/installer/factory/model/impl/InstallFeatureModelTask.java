@@ -287,7 +287,9 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         public void addInstallableArtifact(ArtifactId id, URL url, Map<String,Object> props) {
             try {
                 Dictionary <String,Object> dict = new Hashtable<>();
-                props.entrySet().stream().forEach(e -> dict.put(e.getKey(), e.getValue()));
+                props.entrySet().stream()
+                    .filter(e -> e.getValue() != null)
+                    .forEach(e -> dict.put(e.getKey(), e.getValue()));
 
                 InputStream is = url.openStream();
                 results.add(new InstallableResource("/".concat(id.toMvnName()), is, dict, null /* TODO digest? */,
