@@ -41,6 +41,7 @@ import org.apache.sling.feature.io.artifacts.ArtifactManager;
 import org.apache.sling.feature.io.artifacts.ArtifactManagerConfig;
 import org.apache.sling.feature.io.json.FeatureJSONReader;
 import org.apache.sling.feature.io.json.FeatureJSONWriter;
+import org.apache.sling.feature.spi.context.ExtensionHandler;
 import org.apache.sling.installer.api.InstallableResource;
 import org.apache.sling.installer.api.tasks.InstallTask;
 import org.apache.sling.installer.api.tasks.InstallTaskFactory;
@@ -53,6 +54,9 @@ import org.apache.sling.installer.api.tasks.TransformationResult;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.ReferencePolicyOption;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -101,6 +105,9 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
     private final List<Pattern> classifierPatterns = new ArrayList<>();
 
     private final File storageDirectory;
+
+    @Reference(policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY)
+    private volatile List<ExtensionHandler> extensionHandlers;
 
     @Activate
     public FeatureModelInstallerPlugin(final BundleContext ctx, final Config config) throws IOException {
@@ -180,6 +187,9 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
                 if (!feature.isAssembled()) {
                     final BuilderContext ctx = new BuilderContext(this.artifactManager.toFeatureProvider());
                     ctx.setArtifactProvider(this.artifactManager);
+
+                    // Set all merge extensions here from the service registry?
+
                     feature = FeatureBuilder.assemble(feature, ctx);
                 }
 
@@ -229,7 +239,7 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
         }
         final InstallContext ctx = new InstallContext(this.artifactManager, this.storageDirectory);
         return new InstallFeatureModelTask(group,
-                ctx, this.bundleContext);
+                ctx, this.bundleContext, this.extensionHandlers);
     }
 
     boolean classifierMatches(String classifier) {
