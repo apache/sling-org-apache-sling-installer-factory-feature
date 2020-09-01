@@ -26,13 +26,13 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.sling.feature.Artifact;
 import org.apache.sling.feature.ArtifactId;
@@ -40,11 +40,12 @@ import org.apache.sling.feature.Configuration;
 import org.apache.sling.feature.Extension;
 import org.apache.sling.feature.ExtensionType;
 import org.apache.sling.feature.Feature;
-import org.apache.sling.feature.extension.apiregions.api.ApiRegions;
-import org.apache.sling.feature.extension.apiregions.launcher.LauncherProperties;
+import org.apache.sling.feature.builder.ArtifactProvider;
 import org.apache.sling.feature.io.archive.ArchiveReader;
 import org.apache.sling.feature.io.artifacts.ArtifactHandler;
 import org.apache.sling.feature.io.json.FeatureJSONReader;
+import org.apache.sling.feature.spi.context.ExtensionHandler;
+import org.apache.sling.feature.spi.context.ExtensionHandlerContext;
 import org.apache.sling.installer.api.InstallableResource;
 import org.apache.sling.installer.api.OsgiInstaller;
 import org.apache.sling.installer.api.tasks.InstallationContext;
@@ -52,27 +53,20 @@ import org.apache.sling.installer.api.tasks.ResourceState;
 import org.apache.sling.installer.api.tasks.TaskResource;
 import org.apache.sling.installer.api.tasks.TaskResourceGroup;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 
 /**
  * This task installs a feature model resources.
  */
 public class InstallFeatureModelTask extends AbstractFeatureModelTask {
-
-    private static final String PROP_idbsnver = "mapping.bundleid.bsnver";
-    private static final String PROP_bundleFeatures = "mapping.bundleid.features";
-    private static final String PROP_featureRegions = "mapping.featureid.regions";
-    private static final String PROP_regionPackage = "mapping.region.packages";
-
-    private static final String REGION_FACTORY_PID = "org.apache.sling.feature.apiregions.factory~";
-    private static final String REPOINIT_FACTORY_PID = "org.apache.sling.jcr.repoinit.RepositoryInitializer~";
-
     private final InstallContext installContext;
+    private final List<ExtensionHandler> extensionHandlers;
 
     public InstallFeatureModelTask(final TaskResourceGroup group,
-            final InstallContext installContext, final BundleContext bundleContext) {
+            final InstallContext installContext, final BundleContext bundleContext,
+            final List<ExtensionHandler> extensionHandlers) {
         super(group, bundleContext);
         this.installContext = installContext;
+        this.extensionHandlers = extensionHandlers;
     }
 
     @Override
@@ -139,18 +133,6 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
                     cfg.getConfigurationProperties(), null, InstallableResource.TYPE_CONFIG, null));
         }
 
-        // repoinit
-        final Extension repoInit = feature.getExtensions().getByName(Extension.EXTENSION_NAME_REPOINIT);
-        if (repoInit != null && repoInit.getType() == ExtensionType.TEXT) {
-            final String configPid = REPOINIT_FACTORY_PID.concat(feature.getId().toMvnName().replace('-', '_'));
-            final Dictionary<String, Object> props = new Hashtable<>();
-            props.put("scripts", repoInit.getText());
-            props.put(Constants.SERVICE_RANKING, 200);
-
-            result.add(new InstallableResource("/".concat(configPid).concat(".config"), null,
-                    props, null, InstallableResource.TYPE_CONFIG, null));
-        }
-
         // extract artifacts
         if (this.installContext.storageDirectory != null) {
             final byte[] buffer = new byte[1024*1024*256];
@@ -178,24 +160,27 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
             }
         }
 
-        // api regions
-        final Extension regionExt = feature.getExtensions().getByName(ApiRegions.EXTENSION_NAME);
-        if ( regionExt != null ) {
-            try {
-                final ApiRegions regions = ApiRegions.parse(regionExt.getJSONStructure().asJsonArray());
+        ExtensionHandlerContext context = new ContextImpl(result);
 
-                final String configPid = REGION_FACTORY_PID.concat(feature.getId().toMvnName().replace('-', '_'));
-                final Dictionary<String, Object> props = new Hashtable<>();
-                props.put(PROP_idbsnver, convert(LauncherProperties.getBundleIDtoBSNandVersionMap(feature, this.installContext.artifactManager)));
-                props.put(PROP_bundleFeatures, convert(LauncherProperties.getBundleIDtoFeaturesMap(feature)));
-                props.put(PROP_featureRegions, convert(LauncherProperties.getFeatureIDtoRegionsMap(regions)));
-                props.put(PROP_regionPackage, convert(LauncherProperties.getRegionNametoPackagesMap(regions)));
-
-                result.add(new InstallableResource("/".concat(configPid).concat(".config"), null,
-                        props, null, InstallableResource.TYPE_CONFIG, null));
-            } catch (final IOException ioe) {
-                logger.warn("Unable to parse region information " + feature.getId().toMvnId(), ioe);
-                return null;
+        for (Extension ext : feature.getExtensions()) {
+            boolean handlerFound = false;
+            for (ExtensionHandler eh : extensionHandlers) {
+                try {
+                    handlerFound |= eh.handle(context, ext, feature);
+                } catch (Exception e) {
+                    logger.error("Exception while processing extension {} with handler {}", ext, eh, e);
+                }
+            }
+            if (!handlerFound) {
+                if (ExtensionType.ARTIFACTS == ext.getType()) {
+                    // Unhandled ARTIFACTS extensions get stored
+                    for (final Artifact artifact : ext.getArtifacts()) {
+                        addArtifact(artifact, result);
+                    }
+                } else {
+                    // should this be an error?
+                    logger.warn("No extension handler found for mandartory extension " + ext);
+                }
             }
         }
 
@@ -206,25 +191,7 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
             }
         }
 
-        // artifact extensions
-        for(final Extension ext : feature.getExtensions()) {
-            if ( ext.getType() == ExtensionType.ARTIFACTS ) {
-                for (final Artifact artifact : ext.getArtifacts()) {
-                    addArtifact(artifact, result);
-                }
-            }
-        }
-
         return result;
-    }
-
-    private String[] convert(final Properties props) {
-        final List<String> result = new ArrayList<>();
-
-        for(final Map.Entry<Object, Object> entry : props.entrySet()) {
-            result.add(entry.getKey().toString().concat("=").concat(entry.getValue().toString()));
-        }
-        return result.toArray(new String[result.size()]);
     }
 
     private boolean addArtifact(final Artifact artifact,
@@ -273,5 +240,80 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
     @Override
     public String getSortKey() {
         return "30-" + getResource().getAttribute(FeatureModelInstallerPlugin.ATTR_ID);
+    }
+
+    private ArtifactProvider getLocalArtifactProvider() {
+        // TODO share with addArtifact()
+        return new ArtifactProvider() {
+            @Override
+            public URL provide(ArtifactId id) {
+                File artifactFile = (installContext.storageDirectory == null ? null
+                        : getArtifactFile(installContext.storageDirectory, id));
+                ArtifactHandler handler;
+                if (artifactFile == null || !artifactFile.exists()) {
+                    try {
+                        handler = installContext.artifactManager.getArtifactHandler(id.toMvnUrl());
+                    } catch (final IOException ignore) {
+                        return null;
+                    }
+                } else {
+                    try {
+                        handler = new ArtifactHandler(artifactFile);
+                    } catch (final MalformedURLException e) {
+                        return null;
+                    }
+                }
+                if (handler == null) {
+                    return null;
+                }
+                return handler.getLocalURL();
+            }
+        };
+    }
+
+    private class ContextImpl implements ExtensionHandlerContext {
+        private final List<InstallableResource> results;
+
+        public ContextImpl(List<InstallableResource> results) {
+            this.results = results;
+        }
+
+        @Override
+        public void addBundle(ArtifactId id, URL file, Integer startLevel) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public void addInstallableArtifact(ArtifactId id, URL url, Map<String,Object> props) {
+            try {
+                Dictionary <String,Object> dict = new Hashtable<>();
+                props.entrySet().stream()
+                    .filter(e -> e.getValue() != null)
+                    .forEach(e -> dict.put(e.getKey(), e.getValue()));
+
+                InputStream is = url.openStream();
+                results.add(new InstallableResource("/".concat(id.toMvnName()), is, dict, null /* TODO digest? */,
+                        InstallableResource.TYPE_FILE, null));
+            } catch (IOException e) {
+                logger.warn("Unable to read artifact " + id + " from url " + url, e);
+            }
+        }
+
+        @Override
+        public void addConfiguration(String pid, String factoryPid, Dictionary<String, Object> properties) {
+            // TODO handler factoryPid, is this ok?
+            String cfgPid = pid;
+            if (factoryPid != null) {
+                cfgPid = factoryPid;
+            }
+
+            results.add(new InstallableResource("/".concat(cfgPid).concat(".config"), null,
+                    properties, null, InstallableResource.TYPE_CONFIG, null));
+        }
+
+        @Override
+        public ArtifactProvider getArtifactProvider() {
+            return getLocalArtifactProvider();
+        }
     }
 }

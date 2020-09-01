@@ -1,0 +1,10 @@
+{
+  "id":"org.apache.sling.someproj:feature:3.0.2",
+  "bundles": [
+    "org.apache.felix:org.apache.felix.converter:1.0.14"
+  ],
+  "framework-properties": {
+    "foo": "bar"
+  }
+}
+
