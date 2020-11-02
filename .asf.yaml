@@ -1,0 +1,9 @@
+github:
+  description: "Apache Sling Installer Feature Model Support"
+  homepage: "https://sling.apache.org/"
+  labels:
+    - java
+    - sling
+    - osgi
+    - osgi-feature-model
+    - installer
