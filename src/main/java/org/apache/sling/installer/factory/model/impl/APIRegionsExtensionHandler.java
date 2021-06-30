@@ -18,6 +18,8 @@
  */
 package org.apache.sling.installer.factory.model.impl;
 
+import org.apache.sling.feature.Artifact;
+import org.apache.sling.feature.ArtifactId;
 import org.apache.sling.feature.Extension;
 import org.apache.sling.feature.ExtensionType;
 import org.apache.sling.feature.Feature;
@@ -28,11 +30,16 @@ import org.apache.sling.feature.spi.context.ExtensionHandlerContext;
 import org.osgi.service.component.annotations.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class APIRegionsExtensionHandler implements ExtensionHandler {
@@ -55,7 +62,7 @@ public class APIRegionsExtensionHandler implements ExtensionHandler {
         final String configPid = REGION_FACTORY_PID.concat(feature.getId().toMvnName().replace('-', '_'));
         final Dictionary<String, Object> props = new Hashtable<>();
         props.put(PROP_idbsnver, convert(LauncherProperties.getBundleIDtoBSNandVersionMap(feature, context.getArtifactProvider())));
-        props.put(PROP_bundleFeatures, convert(LauncherProperties.getBundleIDtoFeaturesMap(feature)));
+        props.put(PROP_bundleFeatures, convert(getBundleIDToFeatureMap(feature)));
         props.put(PROP_featureRegions, convert(LauncherProperties.getFeatureIDtoRegionsMap(regions)));
         props.put(PROP_regionPackage, convert(LauncherProperties.getRegionNametoPackagesMap(regions)));
 
@@ -70,5 +77,21 @@ public class APIRegionsExtensionHandler implements ExtensionHandler {
             result.add(entry.getKey().toString().concat("=").concat(entry.getValue().toString()));
         }
         return result.toArray(new String[result.size()]);
+    }
+
+    private static Properties getBundleIDToFeatureMap(Feature feature) {
+        Properties bundleToFeatureMapping = LauncherProperties.getBundleIDtoFeaturesMap(feature);
+        Properties result = new Properties();
+        String featureId = feature.getId().toMvnId();
+
+        for (Map.Entry<Object, Object> entry : bundleToFeatureMapping.entrySet()) {
+            String value = entry.getValue().toString();
+            if (value.isEmpty()) {
+                value = featureId;
+            }
+            result.setProperty(entry.getKey().toString(), value);
+        }
+
+        return result;
     }
 }
