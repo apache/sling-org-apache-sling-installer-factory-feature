@@ -114,6 +114,14 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         return new File(baseDir, id.toMvnPath().replace('/', File.separatorChar));
     }
 
+    private boolean isFeatureArchive(final TaskResource rsrc) {
+        final Object value = rsrc.getAttribute(FeatureModelInstallerPlugin.ATTR_IS_FAR);
+        if ( value == null ) {
+            return true;
+        }
+        return Boolean.valueOf(value.toString());
+    }
+
     private List<InstallableResource> transform(final String featureJson,
             final TaskResource rsrc) {
         Feature feature = null;
@@ -134,7 +142,7 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         }
 
         // extract artifacts
-        if (this.installContext.storageDirectory != null) {
+        if (this.installContext.storageDirectory != null && isFeatureArchive(rsrc ) ) {
             final byte[] buffer = new byte[1024*1024*256];
 
             try ( final InputStream is = rsrc.getInputStream() ) {

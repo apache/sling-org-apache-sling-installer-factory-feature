@@ -95,6 +95,8 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
 
     public static final String ATTR_ID = "featureId";
 
+    public static final String ATTR_IS_FAR = "isFeatureArchive";
+
     /** Logger. */
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -145,14 +147,15 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
     @Override
     public TransformationResult[] transform(final RegisteredResource resource) {
         final List<Feature> features = new ArrayList<>();
+        boolean isFeatureArchive = true;
         if (resource.getType().equals(InstallableResource.TYPE_FILE) && resource.getURL().endsWith(FILE_EXTENSION)) {
             try (final Reader reader = new InputStreamReader(resource.getInputStream(), "UTF-8")) {
                 features.add(FeatureJSONReader.read(reader, resource.getURL()));
             } catch (final IOException ioe) {
                 logger.info("Unable to read feature model from " + resource.getURL(), ioe);
             }
-        }
-        if (resource.getType().equals(InstallableResource.TYPE_FILE) && resource.getURL().endsWith(".far")) {
+            isFeatureArchive = false;
+        } else if (resource.getType().equals(InstallableResource.TYPE_FILE) && resource.getURL().endsWith(".far")) {
             try (final InputStream is = resource.getInputStream()) {
                 features.addAll(ArchiveReader.read(is, null));
             } catch (final IOException ioe) {
@@ -212,6 +215,7 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
                     final Map<String, Object> attributes = new HashMap<>();
                     attributes.put(ATTR_MODEL, featureJson);
                     attributes.put(ATTR_ID, feature.getId().toMvnId());
+                    attributes.put(ATTR_IS_FAR, isFeatureArchive);
 
                     tr.setAttributes(attributes);
 
