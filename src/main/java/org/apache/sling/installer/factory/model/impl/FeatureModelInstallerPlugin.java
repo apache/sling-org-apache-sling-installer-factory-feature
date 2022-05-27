@@ -144,17 +144,19 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
         }
     }
 
-    @Override
-    public TransformationResult[] transform(final RegisteredResource resource) {
+    /**
+     * Check if the resource is a feature file or feature archive
+     * @param resource The resource
+     * @return The list of features
+     */
+    private List<Feature> getFeatures(final RegisteredResource resource) {
         final List<Feature> features = new ArrayList<>();
-        boolean isFeatureArchive = true;
         if (resource.getType().equals(InstallableResource.TYPE_FILE) && resource.getURL().endsWith(FILE_EXTENSION)) {
             try (final Reader reader = new InputStreamReader(resource.getInputStream(), "UTF-8")) {
                 features.add(FeatureJSONReader.read(reader, resource.getURL()));
             } catch (final IOException ioe) {
                 logger.info("Unable to read feature model from " + resource.getURL(), ioe);
             }
-            isFeatureArchive = false;
         } else if (resource.getType().equals(InstallableResource.TYPE_FILE) && resource.getURL().endsWith(".far")) {
             try (final InputStream is = resource.getInputStream()) {
                 features.addAll(ArchiveReader.read(is, null));
@@ -162,22 +164,15 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
                 logger.info("Unable to read feature model from " + resource.getURL(), ioe);
             }
         }
+        return features;
+    }
+
+    @Override
+    public TransformationResult[] transform(final RegisteredResource resource) {
+        final boolean isFeatureArchive = resource.getURL().endsWith(".far");
+        final List<Feature> features = getFeatures(resource);
         if (!features.isEmpty()) {
-            // persist all features to the file system
-            if (this.storageDirectory != null) {
-                for (Feature feature : features) {
-                    final File featureFile = new File(this.storageDirectory,
-                            feature.getId().toMvnPath().replace('/', File.separatorChar));
-                    if (!featureFile.exists()) {
-                        featureFile.getParentFile().mkdirs();
-                        try (final Writer writer = new FileWriter(featureFile)) {
-                            FeatureJSONWriter.write(writer, feature);
-                        } catch (final IOException ioe) {
-                            logger.error("Unable to write feature to " + featureFile + ":" + ioe.getMessage(), ioe);
-                        }
-                    }
-                }
-            }
+            this.persistFeatures(features);
 
             boolean error = false;
             final List<TransformationResult> result = new ArrayList<>();
@@ -186,26 +181,7 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
                     continue;
                 }
 
-                // assemble feature now
-                if (!feature.isAssembled()) {
-                    final BuilderContext ctx = new BuilderContext(this.artifactManager.toFeatureProvider());
-                    ctx.setArtifactProvider(this.artifactManager);
-
-                    // Set all merge extensions here from the service registry?
-
-                    feature = FeatureBuilder.assemble(feature, ctx);
-                }
-
-                FeatureBuilder.resolveVariables(feature, null);
-
-                String featureJson = null;
-                try (final StringWriter sw = new StringWriter()) {
-                    FeatureJSONWriter.write(sw, feature);
-                    featureJson = sw.toString();
-                } catch (final IOException ioe) {
-                    logger.info("Unable to read feature model from " + resource.getURL(), ioe);
-                }
-
+                final String featureJson = this.getFeatureJSON(feature);
                 if (featureJson != null) {
                     final TransformationResult tr = new TransformationResult();
                     tr.setResourceType(TYPE_FEATURE_MODEL);
@@ -261,6 +237,55 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
             }
         }
         return select;
+    }
+
+    /**
+     * Persist all features in the file system (if storage dir is specified)
+     * @param features The list of features
+     */
+    private void persistFeatures(final List<Feature> features) {
+        if (this.storageDirectory != null) {
+            for (final Feature feature : features) {
+                final File featureFile = new File(this.storageDirectory, feature.getId().toMvnPath().replace('/', File.separatorChar));
+                if (!featureFile.exists()) {
+                    featureFile.getParentFile().mkdirs();
+                    try (final Writer writer = new FileWriter(featureFile)) {
+                        FeatureJSONWriter.write(writer, feature);
+                    } catch (final IOException ioe) {
+                        logger.error("Unable to write feature to " + featureFile + ":" + ioe.getMessage(), ioe);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Get the feature json.
+     * Assemble feature and resolve variables
+     * @param feature The feature
+     * @return The json string or {@code null}
+     */
+    private String getFeatureJSON(Feature feature) {
+        // assemble feature now
+        if (!feature.isAssembled()) {
+            final BuilderContext ctx = new BuilderContext(this.artifactManager.toFeatureProvider());
+            ctx.setArtifactProvider(this.artifactManager);
+
+            // Set all merge extensions here from the service registry?
+            feature = FeatureBuilder.assemble(feature, ctx);
+        }
+
+        FeatureBuilder.resolveVariables(feature, null);
+
+        String featureJson = null;
+        try (final StringWriter sw = new StringWriter()) {
+            FeatureJSONWriter.write(sw, feature);
+            featureJson = sw.toString();
+        } catch (final IOException ioe) {
+            logger.info("Unable to process feature model " + feature.getId().toMvnId(), ioe);
+        }
+
+        return featureJson;
     }
 
     private static String toRegexPattern(String pattern) {

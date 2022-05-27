@@ -20,10 +20,12 @@ package org.apache.sling.feature.spi.context;
 
 import org.apache.sling.feature.Extension;
 import org.apache.sling.feature.Feature;
+import org.osgi.annotation.versioning.ConsumerType;
 
 /**
  * Service interface to handle feature model extensions in the feature installer
  */
+@ConsumerType
 public interface ExtensionHandler {
     /**
      * Called on registered services when an extension is encountered

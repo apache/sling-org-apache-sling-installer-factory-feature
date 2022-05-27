@@ -20,6 +20,7 @@ package org.apache.sling.feature.spi.context;
 
 import org.apache.sling.feature.ArtifactId;
 import org.apache.sling.feature.builder.ArtifactProvider;
+import org.osgi.annotation.versioning.ProviderType;
 
 import java.net.URL;
 import java.util.Dictionary;
@@ -28,6 +29,7 @@ import java.util.Map;
 /**
  * This context is provided with calls to {@link ExtensionHandler} services.
  */
+@ProviderType
 public interface ExtensionHandlerContext {
     /**
      * Add a bundle to be installed by the launcher.
@@ -35,7 +37,7 @@ public interface ExtensionHandlerContext {
      * @param startLevel The start level for the bundle.
      * @param file The file with the bundle.
      */
-    public void addBundle(ArtifactId id, URL file, Integer startLevel);
+    void addBundle(ArtifactId id, URL file, Integer startLevel);
 
     /**
      * Add an artifact to be installed by the launcher
@@ -43,7 +45,7 @@ public interface ExtensionHandlerContext {
      * @param url The url to the Artifact resource
      * @param props Additional installation metadata
      */
-    public void addInstallableArtifact(ArtifactId id, final URL url, final Map<String,Object> props);
+    void addInstallableArtifact(ArtifactId id, final URL url, final Map<String,Object> props);
 
     /**
      * Add a configuration to be installed by the launcher
@@ -51,11 +53,11 @@ public interface ExtensionHandlerContext {
      * @param factoryPid The factory pid
      * @param properties The propertis
      */
-    public void addConfiguration(final String pid, final String factoryPid, final Dictionary<String, Object> properties);
+    void addConfiguration(final String pid, final String factoryPid, final Dictionary<String, Object> properties);
 
     /**
      * Obtain the artifact provider.
      * @return The artifact provider.
      */
-    public ArtifactProvider getArtifactProvider();
+    ArtifactProvider getArtifactProvider();
 }
