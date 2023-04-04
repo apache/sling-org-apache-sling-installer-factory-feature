@@ -2,8 +2,18 @@ github:
   description: "Apache Sling Installer Feature Model Support"
   homepage: "https://sling.apache.org/"
   labels:
-    - java
-    - sling
-    - osgi
-    - osgi-feature-model
-    - installer
+  - "java"
+  - "sling"
+  - "osgi"
+  - "osgi-feature-model"
+  - "installer"
+  autolink_jira:
+  - "SLING"
+  - "OAK"
+  - "JCR"
+  - "JCRVLT"
+  - "INFRA"
+  - "FELIX"
+  - "MNG"
+notifications:
+  jira_options: "link"
