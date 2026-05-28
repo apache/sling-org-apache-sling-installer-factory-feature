@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.sling</groupId>
         <artifactId>sling-bundle-parent</artifactId>
-        <version>49</version>
+        <version>66</version>
         <relativePath />
     </parent>
 
@@ -30,38 +30,18 @@
     <version>0.8.1-SNAPSHOT</version>
 
     <name>Apache Sling Installer Feature Model Support</name>
-    <description> 
-        Provides support for the feature model to the Apache Sling OSGi installer
-    </description>
+    <description>Provides support for the feature model to the Apache Sling OSGi installer</description>
 
     <scm>
         <connection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-installer-factory-feature.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-installer-factory-feature.git</developerConnection>
-        <url>https://github.com/apache/sling-org-apache-sling-installer-factory-feature.git</url>
         <tag>HEAD</tag>
+        <url>https://github.com/apache/sling-org-apache-sling-installer-factory-feature.git</url>
     </scm>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.rat</groupId>
-                <artifactId>apache-rat-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>src/test/resources/**/*.slingosgifeature</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-            
-        </plugins>
-    </build>
+    <properties>
+        <sling.java.version>11</sling.java.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -81,7 +61,7 @@
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
-            <artifactId>osgi.core</artifactId>
+            <artifactId>org.osgi.framework</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -118,7 +98,7 @@
             <version>2.0.0</version>
             <scope>provided</scope>
         </dependency>
-        
+
         <!-- Testing -->
         <dependency>
             <groupId>junit</groupId>
@@ -134,8 +114,8 @@
         <dependency>
             <groupId>org.apache.johnzon</groupId>
             <artifactId>johnzon-core</artifactId>
-            <classifier>jakarta</classifier>
             <version>1.2.21</version>
+            <classifier>jakarta</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -145,5 +125,27 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>src/test/resources/**/*.slingosgifeature</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
 
 </project>

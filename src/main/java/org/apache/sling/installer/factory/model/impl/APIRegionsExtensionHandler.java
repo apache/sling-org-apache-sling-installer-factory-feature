@@ -45,16 +45,18 @@ public class APIRegionsExtensionHandler implements ExtensionHandler {
 
     @Override
     public boolean handle(ExtensionHandlerContext context, Extension extension, Feature feature) throws Exception {
-        if (!extension.getName().equals(ApiRegions.EXTENSION_NAME) ||
-                extension.getType() != ExtensionType.JSON) {
+        if (!extension.getName().equals(ApiRegions.EXTENSION_NAME) || extension.getType() != ExtensionType.JSON) {
             return false;
         }
 
         final ApiRegions regions = ApiRegions.parse(extension.getJSONStructure().asJsonArray());
 
-        final String configPid = REGION_FACTORY_PID.concat(feature.getId().toMvnName().replace('-', '_'));
+        final String configPid =
+                REGION_FACTORY_PID.concat(feature.getId().toMvnName().replace('-', '_'));
         final Dictionary<String, Object> props = new Hashtable<>();
-        props.put(PROP_idbsnver, convert(LauncherProperties.getBundleIDtoBSNandVersionMap(feature, context.getArtifactProvider())));
+        props.put(
+                PROP_idbsnver,
+                convert(LauncherProperties.getBundleIDtoBSNandVersionMap(feature, context.getArtifactProvider())));
         props.put(PROP_bundleFeatures, convert(LauncherProperties.getBundleIDtoFeaturesMap(feature)));
         props.put(PROP_featureRegions, convert(LauncherProperties.getFeatureIDtoRegionsMap(regions)));
         props.put(PROP_regionPackage, convert(LauncherProperties.getRegionNametoPackagesMap(regions)));
@@ -66,8 +68,11 @@ public class APIRegionsExtensionHandler implements ExtensionHandler {
     private String[] convert(final Properties props) {
         final List<String> result = new ArrayList<>();
 
-        for(final Map.Entry<Object, Object> entry : props.entrySet()) {
-            result.add(entry.getKey().toString().concat("=").concat(entry.getValue().toString()));
+        for (final Map.Entry<Object, Object> entry : props.entrySet()) {
+            result.add(entry.getKey()
+                    .toString()
+                    .concat("=")
+                    .concat(entry.getValue().toString()));
         }
         return result.toArray(new String[result.size()]);
     }

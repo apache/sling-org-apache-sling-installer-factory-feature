@@ -18,6 +18,19 @@
  */
 package org.apache.sling.installer.factory.model.impl;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.sling.feature.Extension;
 import org.apache.sling.feature.ExtensionType;
 import org.apache.sling.feature.Feature;
@@ -34,34 +47,19 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class InstallFeatureModelTaskTest {
-    private static String FEATURE_JSON_1 = "{" +
-            "  \"id\":\"org.apache.sling.someproj:feature:7.0.126\"," +
-            "  \"system-fonts:ARTIFACTS|true\": [" +
-            "    \"org.apache.sling.feature:my-fonts:jar:0.7.1\"" +
-            "  ]," +
-            "  \"blahblahblah:ARTIFACTS|true\": [" +
-            "  ]," +
-            "  \"framework-properties\": {" +
-            "    \"foo\": \"bar\"" + "  }" +
-            "}";
-
+    private static String FEATURE_JSON_1 = "{" + "  \"id\":\"org.apache.sling.someproj:feature:7.0.126\","
+            + "  \"system-fonts:ARTIFACTS|true\": ["
+            + "    \"org.apache.sling.feature:my-fonts:jar:0.7.1\""
+            + "  ],"
+            + "  \"blahblahblah:ARTIFACTS|true\": ["
+            + "  ],"
+            + "  \"framework-properties\": {"
+            + "    \"foo\": \"bar\""
+            + "  }" + "}";
 
     private Path tempDir;
 
@@ -79,7 +77,8 @@ public class InstallFeatureModelTaskTest {
     @Test
     public void testTransform() {
         TaskResource resource = Mockito.mock(TaskResource.class);
-        Mockito.when(resource.getAttribute(FeatureModelInstallerPlugin.ATTR_MODEL)).thenReturn(FEATURE_JSON_1);
+        Mockito.when(resource.getAttribute(FeatureModelInstallerPlugin.ATTR_MODEL))
+                .thenReturn(FEATURE_JSON_1);
 
         TaskResourceGroup group = Mockito.mock(TaskResourceGroup.class);
         Mockito.when(group.getActiveResource()).thenReturn(resource);
@@ -90,7 +89,8 @@ public class InstallFeatureModelTaskTest {
         TestExtensionHandler testEH = new TestExtensionHandler("system-fonts", ExtensionType.ARTIFACTS);
         List<ExtensionHandler> extensionHandlers = Arrays.asList(testEH);
 
-        InstallFeatureModelTask ifmt = new InstallFeatureModelTask(group, installContext, bundleContext, extensionHandlers);
+        InstallFeatureModelTask ifmt =
+                new InstallFeatureModelTask(group, installContext, bundleContext, extensionHandlers);
 
         InstallationContext ctx = Mockito.mock(InstallationContext.class);
 
@@ -114,13 +114,13 @@ public class InstallFeatureModelTaskTest {
         URL farRes = getClass().getResource("/test2/test2.far");
 
         String fm = new BufferedReader(new InputStreamReader(fmRes.openStream()))
-                .lines().collect(Collectors.joining("\n"));
+                .lines()
+                .collect(Collectors.joining("\n"));
 
         TaskResource resource = Mockito.mock(TaskResource.class);
         Mockito.when(resource.getAttribute(FeatureModelInstallerPlugin.ATTR_MODEL))
-            .thenReturn(fm);
-        Mockito.when(resource.getInputStream())
-            .thenReturn(farRes.openStream());
+                .thenReturn(fm);
+        Mockito.when(resource.getInputStream()).thenReturn(farRes.openStream());
 
         TaskResourceGroup group = Mockito.mock(TaskResourceGroup.class);
         Mockito.when(group.getActiveResource()).thenReturn(resource);
@@ -131,8 +131,8 @@ public class InstallFeatureModelTaskTest {
 
         List<ExtensionHandler> extensionHandlers = Arrays.asList();
 
-        InstallFeatureModelTask ifmt = new InstallFeatureModelTask(group, installContext,
-                bundleContext, extensionHandlers );
+        InstallFeatureModelTask ifmt =
+                new InstallFeatureModelTask(group, installContext, bundleContext, extensionHandlers);
 
         InstallationContext ctx = Mockito.mock(InstallationContext.class);
 
@@ -143,8 +143,8 @@ public class InstallFeatureModelTaskTest {
         assertTrue(Files.exists(actualJar));
         assertEquals(116605, Files.size(actualJar));
 
-        Path actualFeatureModel = tempDir.resolve(
-                "org/apache/sling/someproj/feature/3.0.2/feature-3.0.2.slingosgifeature");
+        Path actualFeatureModel =
+                tempDir.resolve("org/apache/sling/someproj/feature/3.0.2/feature-3.0.2.slingosgifeature");
         assertTrue(Files.exists(actualFeatureModel));
 
         String expectedFM = new String(Files.readAllBytes(new File(fmRes.getFile()).toPath()));

@@ -18,12 +18,12 @@
  */
 package org.apache.sling.installer.factory.model.impl;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class FeatureModelInstallerPluginTest {
 
@@ -32,8 +32,8 @@ public class FeatureModelInstallerPluginTest {
         final FeatureModelInstallerPlugin.Config config = Mockito.mock(FeatureModelInstallerPlugin.Config.class);
         Mockito.when(config.classifierPatterns()).thenReturn(null);
 
-        final FeatureModelInstallerPlugin plugin = new FeatureModelInstallerPlugin(Mockito.mock(BundleContext.class),
-                config);
+        final FeatureModelInstallerPlugin plugin =
+                new FeatureModelInstallerPlugin(Mockito.mock(BundleContext.class), config);
         assertTrue(plugin.classifierMatches("foo"));
         assertTrue(plugin.classifierMatches(null));
     }
@@ -41,10 +41,10 @@ public class FeatureModelInstallerPluginTest {
     @Test
     public void testNoClassifierPattern() throws Exception {
         final FeatureModelInstallerPlugin.Config config = Mockito.mock(FeatureModelInstallerPlugin.Config.class);
-        Mockito.when(config.classifierPatterns()).thenReturn(new String[] { ":" });
+        Mockito.when(config.classifierPatterns()).thenReturn(new String[] {":"});
 
-        final FeatureModelInstallerPlugin plugin = new FeatureModelInstallerPlugin(Mockito.mock(BundleContext.class),
-                config);
+        final FeatureModelInstallerPlugin plugin =
+                new FeatureModelInstallerPlugin(Mockito.mock(BundleContext.class), config);
         assertFalse(plugin.classifierMatches("foo"));
         assertTrue(plugin.classifierMatches(null));
     }
@@ -52,10 +52,10 @@ public class FeatureModelInstallerPluginTest {
     @Test
     public void testClassifierPatterns() throws Exception {
         final FeatureModelInstallerPlugin.Config config = Mockito.mock(FeatureModelInstallerPlugin.Config.class);
-        Mockito.when(config.classifierPatterns()).thenReturn(new String[] { ":", "*devfar", "*prodfar", "*special*" });
+        Mockito.when(config.classifierPatterns()).thenReturn(new String[] {":", "*devfar", "*prodfar", "*special*"});
 
-        final FeatureModelInstallerPlugin plugin = new FeatureModelInstallerPlugin(Mockito.mock(BundleContext.class),
-                config);
+        final FeatureModelInstallerPlugin plugin =
+                new FeatureModelInstallerPlugin(Mockito.mock(BundleContext.class), config);
 
         assertTrue(plugin.classifierMatches(null));
         assertTrue(plugin.classifierMatches("mydevfar"));

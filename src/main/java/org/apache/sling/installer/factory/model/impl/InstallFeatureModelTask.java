@@ -61,8 +61,10 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
     private final InstallContext installContext;
     private final List<ExtensionHandler> extensionHandlers;
 
-    public InstallFeatureModelTask(final TaskResourceGroup group,
-            final InstallContext installContext, final BundleContext bundleContext,
+    public InstallFeatureModelTask(
+            final TaskResourceGroup group,
+            final InstallContext installContext,
+            final BundleContext bundleContext,
             final List<ExtensionHandler> extensionHandlers) {
         super(group, bundleContext);
         this.installContext = installContext;
@@ -89,19 +91,20 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
                         final OsgiInstaller installer = this.getService(OsgiInstaller.class);
                         if (installer != null) {
                             installer.registerResources(
-                                    getScheme(resource),
-                                    result.toArray(new InstallableResource[result.size()]));
+                                    getScheme(resource), result.toArray(new InstallableResource[result.size()]));
                         } else {
-                            ctx.log("Unable to install feature model resource {} : unable to get OSGi installer",
+                            ctx.log(
+                                    "Unable to install feature model resource {} : unable to get OSGi installer",
                                     resource);
-                            this.getResourceGroup().setFinishState(ResourceState.IGNORED, null,  "Unable to get OSGi installer");
+                            this.getResourceGroup()
+                                    .setFinishState(ResourceState.IGNORED, null, "Unable to get OSGi installer");
                             return;
                         }
                     }
                     this.getResourceGroup().setFinishState(ResourceState.INSTALLED);
                     success = true;
                 }
-                if ( success ) {
+                if (success) {
                     ctx.log("Installed {}", resource.getEntityId());
                 }
             }
@@ -116,18 +119,17 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
 
     private boolean isFeatureArchive(final TaskResource rsrc) {
         final Object value = rsrc.getAttribute(FeatureModelInstallerPlugin.ATTR_IS_FAR);
-        if ( value == null ) {
+        if (value == null) {
             return true;
         }
         return Boolean.valueOf(value.toString());
     }
 
-    private List<InstallableResource> transform(final String featureJson,
-            final TaskResource rsrc) {
+    private List<InstallableResource> transform(final String featureJson, final TaskResource rsrc) {
         Feature feature = null;
         try (final Reader reader = new StringReader(featureJson)) {
             feature = FeatureJSONReader.read(reader, null);
-        } catch ( final IOException ioe) {
+        } catch (final IOException ioe) {
             logger.warn("Unable to read feature model file", ioe);
         }
         if (feature == null) {
@@ -137,15 +139,20 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         final List<InstallableResource> result = new ArrayList<>();
         // configurations
         for (final Configuration cfg : feature.getConfigurations()) {
-            result.add(new InstallableResource("/".concat(cfg.getPid()).concat(".config"), null,
-                    cfg.getConfigurationProperties(), null, InstallableResource.TYPE_CONFIG, null));
+            result.add(new InstallableResource(
+                    "/".concat(cfg.getPid()).concat(".config"),
+                    null,
+                    cfg.getConfigurationProperties(),
+                    null,
+                    InstallableResource.TYPE_CONFIG,
+                    null));
         }
 
         // extract artifacts
-        if (this.installContext.storageDirectory != null && isFeatureArchive(rsrc ) ) {
-            final byte[] buffer = new byte[1024*1024*256];
+        if (this.installContext.storageDirectory != null && isFeatureArchive(rsrc)) {
+            final byte[] buffer = new byte[1024 * 1024 * 256];
 
-            try ( final InputStream is = rsrc.getInputStream() ) {
+            try (final InputStream is = rsrc.getInputStream()) {
                 ArchiveReader.read(is, new ArchiveReader.ArtifactConsumer() {
 
                     @Override
@@ -162,8 +169,11 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
                         }
                     }
                 });
-            } catch ( final IOException ioe) {
-                logger.warn("Unable to extract artifacts from feature model " + feature.getId().toMvnId(), ioe);
+            } catch (final IOException ioe) {
+                logger.warn(
+                        "Unable to extract artifacts from feature model "
+                                + feature.getId().toMvnId(),
+                        ioe);
                 return null;
             }
         }
@@ -202,14 +212,15 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         return result;
     }
 
-    private boolean addArtifact(final Artifact artifact,
-            final List<InstallableResource> result) {
-        File artifactFile = (this.installContext.storageDirectory == null ? null
+    private boolean addArtifact(final Artifact artifact, final List<InstallableResource> result) {
+        File artifactFile = (this.installContext.storageDirectory == null
+                ? null
                 : getArtifactFile(this.installContext.storageDirectory, artifact.getId()));
         ArtifactHandler handler;
         if (artifactFile == null || !artifactFile.exists()) {
             try {
-                handler = this.installContext.artifactManager.getArtifactHandler(artifact.getId().toMvnUrl());
+                handler = this.installContext.artifactManager.getArtifactHandler(
+                        artifact.getId().toMvnUrl());
             } catch (final IOException ignore) {
                 return false;
             }
@@ -234,10 +245,11 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
             if (artifact.getStartOrder() > 0) {
                 dict.put(InstallableResource.BUNDLE_START_LEVEL, artifact.getStartOrder());
             }
-            dict.put(InstallableResource.RESOURCE_URI_HINT, handler.getLocalURL().toString());
+            dict.put(
+                    InstallableResource.RESOURCE_URI_HINT, handler.getLocalURL().toString());
 
-            result.add(new InstallableResource("/".concat(artifact.getId().toMvnName()), is, dict, digest,
-                    InstallableResource.TYPE_FILE, null));
+            result.add(new InstallableResource(
+                    "/".concat(artifact.getId().toMvnName()), is, dict, digest, InstallableResource.TYPE_FILE, null));
         } catch (final IOException ioe) {
             logger.warn("Unable to read artifact " + handler.getLocalURL(), ioe);
             return false;
@@ -255,7 +267,8 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         return new ArtifactProvider() {
             @Override
             public URL provide(ArtifactId id) {
-                File artifactFile = (installContext.storageDirectory == null ? null
+                File artifactFile = (installContext.storageDirectory == null
+                        ? null
                         : getArtifactFile(installContext.storageDirectory, id));
                 ArtifactHandler handler;
                 if (artifactFile == null || !artifactFile.exists()) {
@@ -292,16 +305,21 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
         }
 
         @Override
-        public void addInstallableArtifact(ArtifactId id, URL url, Map<String,Object> props) {
+        public void addInstallableArtifact(ArtifactId id, URL url, Map<String, Object> props) {
             try {
-                Dictionary <String,Object> dict = new Hashtable<>();
+                Dictionary<String, Object> dict = new Hashtable<>();
                 props.entrySet().stream()
-                    .filter(e -> e.getValue() != null)
-                    .forEach(e -> dict.put(e.getKey(), e.getValue()));
+                        .filter(e -> e.getValue() != null)
+                        .forEach(e -> dict.put(e.getKey(), e.getValue()));
 
                 InputStream is = url.openStream();
-                results.add(new InstallableResource("/".concat(id.toMvnName()), is, dict, null /* TODO digest? */,
-                        InstallableResource.TYPE_FILE, null));
+                results.add(new InstallableResource(
+                        "/".concat(id.toMvnName()),
+                        is,
+                        dict,
+                        null /* TODO digest? */,
+                        InstallableResource.TYPE_FILE,
+                        null));
             } catch (IOException e) {
                 logger.warn("Unable to read artifact " + id + " from url " + url, e);
             }
@@ -315,8 +333,13 @@ public class InstallFeatureModelTask extends AbstractFeatureModelTask {
                 cfgPid = factoryPid;
             }
 
-            results.add(new InstallableResource("/".concat(cfgPid).concat(".config"), null,
-                    properties, null, InstallableResource.TYPE_CONFIG, null));
+            results.add(new InstallableResource(
+                    "/".concat(cfgPid).concat(".config"),
+                    null,
+                    properties,
+                    null,
+                    InstallableResource.TYPE_CONFIG,
+                    null));
         }
 
         @Override

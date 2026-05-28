@@ -30,8 +30,7 @@ import org.osgi.framework.BundleContext;
  */
 public class UninstallFeatureModelTask extends AbstractFeatureModelTask {
 
-    public UninstallFeatureModelTask(final TaskResourceGroup group,
-            final BundleContext bundleContext) {
+    public UninstallFeatureModelTask(final TaskResourceGroup group, final BundleContext bundleContext) {
         super(group, bundleContext);
     }
 
@@ -39,7 +38,7 @@ public class UninstallFeatureModelTask extends AbstractFeatureModelTask {
     public void execute(final InstallationContext ctx) {
         try {
             final OsgiInstaller installer = this.getService(OsgiInstaller.class);
-            if ( installer == null ) {
+            if (installer == null) {
                 ctx.log("Unable to get OSGi Installer service!");
             } else {
                 final TaskResource resource = this.getResource();
