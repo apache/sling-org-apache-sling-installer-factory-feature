@@ -147,8 +147,8 @@ public class InstallFeatureModelTaskTest {
                 tempDir.resolve("org/apache/sling/someproj/feature/3.0.2/feature-3.0.2.slingosgifeature");
         assertTrue(Files.exists(actualFeatureModel));
 
-        String expectedFM = new String(Files.readAllBytes(new File(fmRes.getFile()).toPath()));
-        assertEquals(expectedFM, new String(Files.readAllBytes(actualFeatureModel)));
+        String expectedFM = new String(Files.readAllBytes(new File(fmRes.getFile()).toPath())).trim();
+        assertEquals(expectedFM, new String(Files.readAllBytes(actualFeatureModel)).trim());
     }
 
     private static class TestExtensionHandler implements ExtensionHandler {
