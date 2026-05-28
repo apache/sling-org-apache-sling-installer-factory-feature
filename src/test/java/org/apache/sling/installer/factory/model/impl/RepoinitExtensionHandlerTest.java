@@ -18,6 +18,9 @@
  */
 package org.apache.sling.installer.factory.model.impl;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
+
 import org.apache.sling.feature.ArtifactId;
 import org.apache.sling.feature.Extension;
 import org.apache.sling.feature.ExtensionState;
@@ -28,9 +31,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.osgi.framework.Constants;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -40,19 +40,19 @@ public class RepoinitExtensionHandlerTest {
         RepoinitExtensionHandler rieh = new RepoinitExtensionHandler();
 
         ExtensionHandlerContext ctx = Mockito.mock(ExtensionHandlerContext.class);
-        Extension ex = new Extension(ExtensionType.TEXT,
-                Extension.EXTENSION_NAME_REPOINIT, ExtensionState.REQUIRED);
+        Extension ex = new Extension(ExtensionType.TEXT, Extension.EXTENSION_NAME_REPOINIT, ExtensionState.REQUIRED);
         ex.setText("hello 123");
 
         Feature feat = new Feature(ArtifactId.fromMvnId("a:b:1"));
 
         assertTrue(rieh.handle(ctx, ex, feat));
 
-        Dictionary<String,Object> props = new Hashtable<>();
+        Dictionary<String, Object> props = new Hashtable<>();
         props.put("scripts", "hello 123");
         props.put(Constants.SERVICE_RANKING, 200);
 
-        Mockito.verify(ctx).addConfiguration(null, "org.apache.sling.jcr.repoinit.RepositoryInitializer~b_1.jar", props);
+        Mockito.verify(ctx)
+                .addConfiguration(null, "org.apache.sling.jcr.repoinit.RepositoryInitializer~b_1.jar", props);
     }
 
     @Test
@@ -60,9 +60,11 @@ public class RepoinitExtensionHandlerTest {
         RepoinitExtensionHandler rieh = new RepoinitExtensionHandler();
 
         ExtensionHandlerContext ctx = Mockito.mock(ExtensionHandlerContext.class);
-        assertFalse(rieh.handle(ctx, new Extension(ExtensionType.TEXT,
-                "someother-extension", ExtensionState.REQUIRED), null));
-        assertFalse(rieh.handle(ctx, new Extension(ExtensionType.JSON,
-                Extension.EXTENSION_NAME_REPOINIT, ExtensionState.REQUIRED), null));
+        assertFalse(rieh.handle(
+                ctx, new Extension(ExtensionType.TEXT, "someother-extension", ExtensionState.REQUIRED), null));
+        assertFalse(rieh.handle(
+                ctx,
+                new Extension(ExtensionType.JSON, Extension.EXTENSION_NAME_REPOINIT, ExtensionState.REQUIRED),
+                null));
     }
 }

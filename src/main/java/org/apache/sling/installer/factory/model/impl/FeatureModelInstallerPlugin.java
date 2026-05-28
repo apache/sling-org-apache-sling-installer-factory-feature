@@ -67,23 +67,28 @@ import org.slf4j.LoggerFactory;
  * This task factory processes model resources detected by
  * the {@link FeatureModelTransformer}.
  */
-@Component(service = { InstallTaskFactory.class, ResourceTransformer.class })
+@Component(service = {InstallTaskFactory.class, ResourceTransformer.class})
 @Designate(ocd = FeatureModelInstallerPlugin.Config.class)
 public class FeatureModelInstallerPlugin implements InstallTaskFactory, ResourceTransformer {
 
-    @ObjectClassDefinition(name = "Apache Sling Feature Model Installer",
+    @ObjectClassDefinition(
+            name = "Apache Sling Feature Model Installer",
             description = "This component provides support for feature models to the OSGi installer")
     public @interface Config {
 
-        @AttributeDefinition(name = "Use Apache Maven",
+        @AttributeDefinition(
+                name = "Use Apache Maven",
                 description = "If enabled, missing artifacts from a feature are tried by invoking the mvn command")
         boolean useMvn() default true;
 
         @AttributeDefinition(name = "Repository URLs", description = "Additional repository URLs to fetch artifacts")
         String[] repositories();
 
-        @AttributeDefinition(name = "Classifier Patterns", description = "Patterns for selecting the features to handle based on the classifier. Without a configuration all features are handled."
-                + " The patterns can use an asteriks to match any characters in the classifier. The special token ':' can be used to match the empty classifier.")
+        @AttributeDefinition(
+                name = "Classifier Patterns",
+                description =
+                        "Patterns for selecting the features to handle based on the classifier. Without a configuration all features are handled."
+                                + " The patterns can use an asteriks to match any characters in the classifier. The special token ':' can be used to match the empty classifier.")
         String[] classifierPatterns();
     }
 
@@ -151,13 +156,15 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
      */
     private List<Feature> getFeatures(final RegisteredResource resource) {
         final List<Feature> features = new ArrayList<>();
-        if (resource.getType().equals(InstallableResource.TYPE_FILE) && resource.getURL().endsWith(FILE_EXTENSION)) {
+        if (resource.getType().equals(InstallableResource.TYPE_FILE)
+                && resource.getURL().endsWith(FILE_EXTENSION)) {
             try (final Reader reader = new InputStreamReader(resource.getInputStream(), "UTF-8")) {
                 features.add(FeatureJSONReader.read(reader, resource.getURL()));
             } catch (final IOException ioe) {
                 logger.info("Unable to read feature model from " + resource.getURL(), ioe);
             }
-        } else if (resource.getType().equals(InstallableResource.TYPE_FILE) && resource.getURL().endsWith(".far")) {
+        } else if (resource.getType().equals(InstallableResource.TYPE_FILE)
+                && resource.getURL().endsWith(".far")) {
             try (final InputStream is = resource.getInputStream()) {
                 features.addAll(ArchiveReader.read(is, null));
             } catch (final IOException ioe) {
@@ -214,12 +221,11 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
         if (!TYPE_FEATURE_MODEL.equals(rsrc.getType())) {
             return null;
         }
-        if (rsrc.getState() == ResourceState.UNINSTALL ) {
+        if (rsrc.getState() == ResourceState.UNINSTALL) {
             return new UninstallFeatureModelTask(group, bundleContext);
         }
         final InstallContext ctx = new InstallContext(this.artifactManager, this.storageDirectory);
-        return new InstallFeatureModelTask(group,
-                ctx, this.bundleContext, this.extensionHandlers);
+        return new InstallFeatureModelTask(group, ctx, this.bundleContext, this.extensionHandlers);
     }
 
     boolean classifierMatches(String classifier) {
@@ -246,7 +252,8 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
     private void persistFeatures(final List<Feature> features) {
         if (this.storageDirectory != null) {
             for (final Feature feature : features) {
-                final File featureFile = new File(this.storageDirectory, feature.getId().toMvnPath().replace('/', File.separatorChar));
+                final File featureFile = new File(
+                        this.storageDirectory, feature.getId().toMvnPath().replace('/', File.separatorChar));
                 if (!featureFile.exists()) {
                     featureFile.getParentFile().mkdirs();
                     try (final Writer writer = new FileWriter(featureFile)) {
@@ -294,15 +301,15 @@ public class FeatureModelInstallerPlugin implements InstallTaskFactory, Resource
         while (index < pattern.length()) {
             char currentChar = pattern.charAt(index++);
             switch (currentChar) {
-            case '*':
-                stringBuilder.append("[^/]*");
-                break;
-            default:
-                if (isRegexMeta(currentChar)) {
-                    stringBuilder.append(Pattern.quote(Character.toString(currentChar)));
-                } else {
-                    stringBuilder.append(currentChar);
-                }
+                case '*':
+                    stringBuilder.append("[^/]*");
+                    break;
+                default:
+                    if (isRegexMeta(currentChar)) {
+                        stringBuilder.append(Pattern.quote(Character.toString(currentChar)));
+                    } else {
+                        stringBuilder.append(currentChar);
+                    }
             }
         }
         return stringBuilder.append('$').toString();

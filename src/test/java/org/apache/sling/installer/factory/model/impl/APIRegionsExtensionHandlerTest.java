@@ -18,6 +18,9 @@
  */
 package org.apache.sling.installer.factory.model.impl;
 
+import java.net.URL;
+import java.util.Arrays;
+
 import org.apache.sling.feature.Artifact;
 import org.apache.sling.feature.ArtifactId;
 import org.apache.sling.feature.Extension;
@@ -29,25 +32,20 @@ import org.apache.sling.feature.spi.context.ExtensionHandlerContext;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.net.URL;
-import java.util.Arrays;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class APIRegionsExtensionHandlerTest {
-    private static final String FEATURE_EXT_1 =
-            "[" +
-            "   {" +
-            "     \"name\": \"my-region\"," +
-            "     \"exports\": [\"org.foo.bar\", \"la.di.da\"]" +
-            "   }" +
-            "]";
+    private static final String FEATURE_EXT_1 = "[" + "   {"
+            + "     \"name\": \"my-region\","
+            + "     \"exports\": [\"org.foo.bar\", \"la.di.da\"]"
+            + "   }"
+            + "]";
     private static final String FEATURE_EXT_NOOP = "[]";
-    private static final URL BUNDLE_WITH_ORIGIN_RESOURCE = APIRegionsExtensionHandlerTest.class
-        .getResource("/APIRegionsExtensionHandlerTest/bundle-with-origin-1.jar");
-    private static final URL BUNDLE_WITHOUT_ORIGIN_RESOURCE = APIRegionsExtensionHandlerTest.class
-        .getResource("/APIRegionsExtensionHandlerTest/bundle-without-origin-1.jar");
+    private static final URL BUNDLE_WITH_ORIGIN_RESOURCE = APIRegionsExtensionHandlerTest.class.getResource(
+            "/APIRegionsExtensionHandlerTest/bundle-with-origin-1.jar");
+    private static final URL BUNDLE_WITHOUT_ORIGIN_RESOURCE = APIRegionsExtensionHandlerTest.class.getResource(
+            "/APIRegionsExtensionHandlerTest/bundle-without-origin-1.jar");
 
     @Test
     public void testHandle() throws Exception {
@@ -61,12 +59,14 @@ public class APIRegionsExtensionHandlerTest {
         Feature feat = new Feature(ArtifactId.fromMvnId("x:y:8"));
         assertTrue(areh.handle(ctx, ext, feat));
 
-        Mockito.verify(ctx).addConfiguration(Mockito.isNull(),
-            Mockito.eq("org.apache.sling.feature.apiregions.factory~y_8.jar"),
-            Mockito.argThat(p -> {
-                String[] pkgs = (String[]) p.get("mapping.region.packages");
-                return Arrays.deepEquals(new String [] {"my-region=org.foo.bar,la.di.da"}, pkgs);
-            }));
+        Mockito.verify(ctx)
+                .addConfiguration(
+                        Mockito.isNull(),
+                        Mockito.eq("org.apache.sling.feature.apiregions.factory~y_8.jar"),
+                        Mockito.argThat(p -> {
+                            String[] pkgs = (String[]) p.get("mapping.region.packages");
+                            return Arrays.deepEquals(new String[] {"my-region=org.foo.bar,la.di.da"}, pkgs);
+                        }));
     }
 
     @Test
@@ -103,14 +103,17 @@ public class APIRegionsExtensionHandlerTest {
 
         assertTrue(areh.handle(ctx, ext, feat));
 
-        Mockito.verify(ctx).addConfiguration(Mockito.isNull(),
-            Mockito.eq("org.apache.sling.feature.apiregions.factory~y_8.jar"),
-            Mockito.argThat(p -> {
-                String[] pkgs = (String[]) p.get("mapping.bundleid.features");
-                return Arrays.deepEquals(new String [] {
-                    "bundle:with-origin:1=my:origin:1",
-                    "bundle:without-origin:1=x:y:8",
-                }, pkgs);
-            }));
+        Mockito.verify(ctx)
+                .addConfiguration(
+                        Mockito.isNull(),
+                        Mockito.eq("org.apache.sling.feature.apiregions.factory~y_8.jar"),
+                        Mockito.argThat(p -> {
+                            String[] pkgs = (String[]) p.get("mapping.bundleid.features");
+                            return Arrays.deepEquals(
+                                    new String[] {
+                                        "bundle:with-origin:1=my:origin:1", "bundle:without-origin:1=x:y:8",
+                                    },
+                                    pkgs);
+                        }));
     }
 }

@@ -18,13 +18,13 @@
  */
 package org.apache.sling.feature.spi.context;
 
-import org.apache.sling.feature.ArtifactId;
-import org.apache.sling.feature.builder.ArtifactProvider;
-import org.osgi.annotation.versioning.ProviderType;
-
 import java.net.URL;
 import java.util.Dictionary;
 import java.util.Map;
+
+import org.apache.sling.feature.ArtifactId;
+import org.apache.sling.feature.builder.ArtifactProvider;
+import org.osgi.annotation.versioning.ProviderType;
 
 /**
  * This context is provided with calls to {@link ExtensionHandler} services.
@@ -45,7 +45,7 @@ public interface ExtensionHandlerContext {
      * @param url The url to the Artifact resource
      * @param props Additional installation metadata
      */
-    void addInstallableArtifact(ArtifactId id, final URL url, final Map<String,Object> props);
+    void addInstallableArtifact(ArtifactId id, final URL url, final Map<String, Object> props);
 
     /**
      * Add a configuration to be installed by the launcher
